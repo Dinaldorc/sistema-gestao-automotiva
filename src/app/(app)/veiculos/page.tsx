@@ -1,6 +1,6 @@
-import { Plus } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";
 import { StatusVeiculoBadge } from "@/components/ui/StatusBadge";
+import { NovoVeiculoModal } from "@/components/veiculos/NovoVeiculoModal";
 import { getVeiculos } from "@/lib/data";
 import { formatCurrency } from "@/lib/format";
 import { getUsuarioAtual } from "@/lib/auth";
@@ -15,10 +15,7 @@ export default async function VeiculosPage() {
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted">{veiculos.length} veículos no estoque</p>
-          <button className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-surface-2 hover:opacity-90">
-            <Plus size={16} />
-            Novo Veículo
-          </button>
+          <NovoVeiculoModal />
         </div>
 
         <div className="rounded-xl border border-border bg-surface">
