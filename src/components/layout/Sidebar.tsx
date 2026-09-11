@@ -35,8 +35,8 @@ export function Sidebar() {
           <Car size={20} />
         </div>
         <div>
-          <p className="text-sm font-semibold leading-tight">Campos</p>
-          <p className="text-[10px] uppercase tracking-wide text-muted">Tecnologia</p>
+          <p className="text-sm font-semibold leading-tight">SGA</p>
+          <p className="text-[10px] uppercase tracking-wide text-muted">Gestão Automotiva</p>
         </div>
       </div>
 
