@@ -7,7 +7,7 @@ const veiculoStyles: Record<StatusVeiculo, string> = {
   manutencao: "bg-warning/10 text-warning",
 };
 
-const veiculoLabels: Record<StatusVeiculo, string> = {
+export const veiculoLabels: Record<StatusVeiculo, string> = {
   disponivel: "Disponível",
   vendido: "Vendido",
   reservado: "Reservado",
