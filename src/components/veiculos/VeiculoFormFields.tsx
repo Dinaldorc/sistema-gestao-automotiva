@@ -1,9 +1,24 @@
 import { veiculoLabels } from "@/components/ui/StatusBadge";
-import type { StatusVeiculo } from "@/types";
+import type { OrigemVeiculo, StatusVeiculo } from "@/types";
 
 export const combustiveis = ["Flex", "Gasolina", "Diesel", "Elétrico", "Híbrido"];
 export const cambios = ["Manual", "Automático", "CVT"];
 export const statusOptions = Object.keys(veiculoLabels) as StatusVeiculo[];
+
+export const origemLabels: Record<OrigemVeiculo, string> = {
+  compra: "Compra",
+  troca: "Troca",
+  entrada: "Entrada",
+};
+const origemOptions = (Object.keys(origemLabels) as OrigemVeiculo[]).map((o) => ({
+  value: o,
+  label: origemLabels[o],
+}));
+
+export interface OpcaoFornecedor {
+  value: string;
+  label: string;
+}
 
 export function Field({
   label,
@@ -81,9 +96,19 @@ export interface VeiculoFieldValues {
   combustivel?: string;
   cambio?: string;
   status?: StatusVeiculo;
+  fornecedorId?: string | null;
+  origem?: OrigemVeiculo;
+  custoAquisicao?: number;
+  dataAquisicao?: string | null;
 }
 
-export function VeiculoFields({ defaultValues }: { defaultValues?: VeiculoFieldValues }) {
+export function VeiculoFields({
+  fornecedores,
+  defaultValues,
+}: {
+  fornecedores: OpcaoFornecedor[];
+  defaultValues?: VeiculoFieldValues;
+}) {
   return (
     <>
       <div className="grid grid-cols-2 gap-3">
@@ -101,7 +126,7 @@ export function VeiculoFields({ defaultValues }: { defaultValues?: VeiculoFieldV
           defaultValue={defaultValues?.ano}
         />
         <Field
-          label="Valor (R$)"
+          label="Preço de venda (R$)"
           name="valor"
           type="number"
           step="0.01"
@@ -131,6 +156,46 @@ export function VeiculoFields({ defaultValues }: { defaultValues?: VeiculoFieldV
         name="status"
         defaultValue={defaultValues?.status ?? "disponivel"}
         options={statusOptions.map((s) => ({ value: s, label: veiculoLabels[s] }))}
+      />
+
+      <p className="pt-1 text-xs font-medium uppercase tracking-wide text-muted">Aquisição</p>
+
+      <SelectField
+        label="Fornecedor"
+        name="fornecedor_id"
+        required
+        placeholder="Selecione o fornecedor"
+        defaultValue={defaultValues?.fornecedorId ?? undefined}
+        options={fornecedores}
+      />
+      {fornecedores.length === 0 && (
+        <p className="-mt-2 text-xs text-muted">Cadastre um fornecedor antes de registrar o veículo.</p>
+      )}
+
+      <div className="grid grid-cols-2 gap-3">
+        <SelectField
+          label="Origem"
+          name="origem"
+          defaultValue={defaultValues?.origem ?? "compra"}
+          options={origemOptions}
+        />
+        <Field
+          label="Data da aquisição"
+          name="data_aquisicao"
+          type="date"
+          required
+          defaultValue={defaultValues?.dataAquisicao ?? new Date().toLocaleDateString("sv-SE")}
+        />
+      </div>
+
+      <Field
+        label="Custo de aquisição (R$)"
+        name="custo_aquisicao"
+        type="number"
+        step="0.01"
+        min="0"
+        required
+        defaultValue={defaultValues?.custoAquisicao}
       />
     </>
   );
