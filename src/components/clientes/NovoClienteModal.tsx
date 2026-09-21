@@ -2,10 +2,10 @@
 
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
-import { criarVeiculo } from "@/lib/actions/veiculos";
-import { VeiculoFields } from "@/components/veiculos/VeiculoFormFields";
+import { criarCliente } from "@/lib/actions/clientes";
+import { ClienteFields } from "@/components/clientes/ClienteFormFields";
 
-export function NovoVeiculoModal() {
+export function NovoClienteModal() {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -17,7 +17,7 @@ export function NovoVeiculoModal() {
     const formData = new FormData(event.currentTarget);
 
     startTransition(async () => {
-      const result = await criarVeiculo({ error: null, success: false }, formData);
+      const result = await criarCliente({ error: null, success: false }, formData);
       if (result.error) {
         setError(result.error);
         return;
@@ -34,7 +34,7 @@ export function NovoVeiculoModal() {
         className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-surface-2 hover:opacity-90"
       >
         <Plus size={16} />
-        Novo Veículo
+        Novo Cliente
       </button>
 
       {open && (
@@ -47,7 +47,7 @@ export function NovoVeiculoModal() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Novo Veículo</h2>
+              <h2 className="text-base font-semibold">Novo Cliente</h2>
               <button
                 onClick={() => setOpen(false)}
                 className="text-muted hover:text-foreground"
@@ -58,7 +58,7 @@ export function NovoVeiculoModal() {
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
-              <VeiculoFields />
+              <ClienteFields />
 
               {error && <p className="text-sm text-red-400">{error}</p>}
 

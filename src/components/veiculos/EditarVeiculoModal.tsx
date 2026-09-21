@@ -1,15 +1,15 @@
 "use client";
 
-import { useRef, useState, useTransition, type FormEvent } from "react";
-import { Plus, X } from "lucide-react";
-import { criarVeiculo } from "@/lib/actions/veiculos";
+import { useState, useTransition, type FormEvent } from "react";
+import { Pencil, X } from "lucide-react";
+import { atualizarVeiculo } from "@/lib/actions/veiculos";
 import { VeiculoFields } from "@/components/veiculos/VeiculoFormFields";
+import type { Veiculo } from "@/types";
 
-export function NovoVeiculoModal() {
+export function EditarVeiculoModal({ veiculo }: { veiculo: Veiculo }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
-  const formRef = useRef<HTMLFormElement>(null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -17,12 +17,11 @@ export function NovoVeiculoModal() {
     const formData = new FormData(event.currentTarget);
 
     startTransition(async () => {
-      const result = await criarVeiculo({ error: null, success: false }, formData);
+      const result = await atualizarVeiculo({ error: null, success: false }, formData);
       if (result.error) {
         setError(result.error);
         return;
       }
-      formRef.current?.reset();
       setOpen(false);
     });
   }
@@ -31,10 +30,10 @@ export function NovoVeiculoModal() {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-surface-2 hover:opacity-90"
+        className="text-muted hover:text-foreground"
+        aria-label="Editar veículo"
       >
-        <Plus size={16} />
-        Novo Veículo
+        <Pencil size={16} />
       </button>
 
       {open && (
@@ -47,7 +46,7 @@ export function NovoVeiculoModal() {
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="text-base font-semibold">Novo Veículo</h2>
+              <h2 className="text-base font-semibold">Editar Veículo</h2>
               <button
                 onClick={() => setOpen(false)}
                 className="text-muted hover:text-foreground"
@@ -57,8 +56,9 @@ export function NovoVeiculoModal() {
               </button>
             </div>
 
-            <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
-              <VeiculoFields />
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <input type="hidden" name="id" value={veiculo.id} />
+              <VeiculoFields defaultValues={veiculo} />
 
               {error && <p className="text-sm text-red-400">{error}</p>}
 
