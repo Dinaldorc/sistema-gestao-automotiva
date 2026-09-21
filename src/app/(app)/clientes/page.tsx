@@ -1,5 +1,6 @@
-import { Plus } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";
+import { NovoClienteModal } from "@/components/clientes/NovoClienteModal";
+import { ClienteRowActions } from "@/components/clientes/ClienteRowActions";
 import { getClientes, getVendas } from "@/lib/data";
 import { getUsuarioAtual } from "@/lib/auth";
 
@@ -17,10 +18,7 @@ export default async function ClientesPage() {
       <main className="flex-1 space-y-4 overflow-y-auto p-6">
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted">{clientes.length} clientes cadastrados</p>
-          <button className="flex items-center gap-2 rounded-lg bg-accent px-4 py-2 text-sm font-medium text-surface-2 hover:opacity-90">
-            <Plus size={16} />
-            Novo Cliente
-          </button>
+          <NovoClienteModal />
         </div>
 
         <div className="rounded-xl border border-border bg-surface">
@@ -36,6 +34,7 @@ export default async function ClientesPage() {
                   <th className="px-5 py-3 font-medium">Telefone</th>
                   <th className="px-5 py-3 font-medium">Documento</th>
                   <th className="px-5 py-3 font-medium">Compras</th>
+                  <th className="px-5 py-3 font-medium">Ações</th>
                 </tr>
               </thead>
               <tbody>
@@ -47,6 +46,9 @@ export default async function ClientesPage() {
                       <td className="px-5 py-3 text-muted">{cliente.telefone}</td>
                       <td className="px-5 py-3 text-muted">{cliente.documento}</td>
                       <td className="px-5 py-3">{totalCompras}</td>
+                      <td className="px-5 py-3">
+                        <ClienteRowActions cliente={cliente} />
+                      </td>
                     </tr>
                   );
                 })}
