@@ -43,20 +43,26 @@ export function SelectField({
   name,
   options,
   defaultValue,
+  required,
+  placeholder,
 }: {
   label: string;
   name: string;
   options: { value: string; label: string }[];
   defaultValue?: string;
+  required?: boolean;
+  placeholder?: string;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1.5 block text-muted">{label}</span>
       <select
         name={name}
-        defaultValue={defaultValue}
+        defaultValue={defaultValue ?? (placeholder ? "" : undefined)}
+        required={required}
         className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
       >
+        {placeholder && <option value="">{placeholder}</option>}
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

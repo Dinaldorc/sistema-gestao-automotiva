@@ -9,7 +9,7 @@ export async function getUsuarioAtual() {
 
   const { data: perfil } = await supabase
     .from("usuarios")
-    .select("nome, papel")
+    .select("id, nome, papel")
     .eq("id", user.id)
     .single();
 
