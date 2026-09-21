@@ -20,7 +20,7 @@ const vendaStyles: Record<StatusVenda, string> = {
   cancelada: "bg-red-500/10 text-red-400",
 };
 
-const vendaLabels: Record<StatusVenda, string> = {
+export const vendaLabels: Record<StatusVenda, string> = {
   concluida: "Concluída",
   pendente: "Pendente",
   cancelada: "Cancelada",

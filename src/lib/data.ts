@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   Cliente,
+  PapelUsuario,
   Parcela,
   StatusParcela,
   StatusVeiculo,
   StatusVenda,
   Veiculo,
+  Vendedor,
 } from "@/types";
 
 export async function getVeiculos(): Promise<Veiculo[]> {
@@ -46,6 +48,9 @@ export async function getClientes(): Promise<Cliente[]> {
 
 export interface VendaDetalhada {
   id: string;
+  veiculoId: string;
+  clienteId: string;
+  vendedorId: string;
   data: string;
   valor: number;
   lucro: number;
@@ -60,12 +65,15 @@ export async function getVendas(): Promise<VendaDetalhada[]> {
   const { data } = await supabase
     .from("vendas")
     .select(
-      "id, data, valor, lucro, status, veiculo:veiculos(marca, modelo), cliente:clientes(id, nome), vendedor:usuarios(nome)",
+      "id, veiculo_id, cliente_id, vendedor_id, data, valor, lucro, status, veiculo:veiculos(marca, modelo), cliente:clientes(id, nome), vendedor:usuarios(nome)",
     )
     .order("data", { ascending: false });
 
   return (data ?? []).map((v) => ({
     id: v.id,
+    veiculoId: v.veiculo_id,
+    clienteId: v.cliente_id,
+    vendedorId: v.vendedor_id,
     data: v.data,
     valor: Number(v.valor),
     lucro: Number(v.lucro),
@@ -73,6 +81,21 @@ export async function getVendas(): Promise<VendaDetalhada[]> {
     veiculo: Array.isArray(v.veiculo) ? (v.veiculo[0] ?? null) : v.veiculo,
     cliente: Array.isArray(v.cliente) ? (v.cliente[0] ?? null) : v.cliente,
     vendedor: Array.isArray(v.vendedor) ? (v.vendedor[0] ?? null) : v.vendedor,
+  }));
+}
+
+export async function getVendedores(): Promise<Vendedor[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("usuarios")
+    .select("id, empresa_id, nome, papel")
+    .order("nome", { ascending: true });
+
+  return (data ?? []).map((u) => ({
+    id: u.id,
+    empresaId: u.empresa_id,
+    nome: u.nome,
+    papel: u.papel as PapelUsuario,
   }));
 }
 
