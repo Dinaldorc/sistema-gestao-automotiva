@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   Cliente,
+  Fornecedor,
   PapelUsuario,
   Parcela,
   StatusParcela,
   StatusVeiculo,
   StatusVenda,
+  TipoFornecedor,
   Veiculo,
   Vendedor,
 } from "@/types";
@@ -43,6 +45,23 @@ export async function getClientes(): Promise<Cliente[]> {
     nome: c.nome,
     telefone: c.telefone ?? "",
     documento: c.documento ?? "",
+  }));
+}
+
+export async function getFornecedores(): Promise<Fornecedor[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("fornecedores")
+    .select("id, empresa_id, nome, tipo, documento, telefone")
+    .order("nome", { ascending: true });
+
+  return (data ?? []).map((f) => ({
+    id: f.id,
+    empresaId: f.empresa_id,
+    nome: f.nome,
+    tipo: f.tipo as TipoFornecedor,
+    documento: f.documento ?? "",
+    telefone: f.telefone ?? "",
   }));
 }
 
