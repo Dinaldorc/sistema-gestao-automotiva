@@ -6,6 +6,7 @@ export type StatusVenda = "concluida" | "cancelada" | "pendente";
 export type StatusParcela = "paga" | "em_aberto" | "atrasada";
 export type PapelUsuario = "admin" | "vendedor";
 export type TipoFornecedor = "pessoa_fisica" | "revendedora";
+export type OrigemVeiculo = "compra" | "troca" | "entrada";
 
 export interface Veiculo {
   id: string;
@@ -17,6 +18,11 @@ export interface Veiculo {
   status: StatusVeiculo;
   combustivel: string;
   cambio: string;
+  fornecedorId: string | null;
+  fornecedorNome: string | null;
+  origem: OrigemVeiculo;
+  custoAquisicao: number;
+  dataAquisicao: string | null;
 }
 
 export interface Cliente {

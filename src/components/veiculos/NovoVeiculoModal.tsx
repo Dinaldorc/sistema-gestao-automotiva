@@ -3,9 +3,9 @@
 import { useRef, useState, useTransition, type FormEvent } from "react";
 import { Plus, X } from "lucide-react";
 import { criarVeiculo } from "@/lib/actions/veiculos";
-import { VeiculoFields } from "@/components/veiculos/VeiculoFormFields";
+import { VeiculoFields, type OpcaoFornecedor } from "@/components/veiculos/VeiculoFormFields";
 
-export function NovoVeiculoModal() {
+export function NovoVeiculoModal({ fornecedores }: { fornecedores: OpcaoFornecedor[] }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
@@ -43,7 +43,7 @@ export function NovoVeiculoModal() {
           onClick={() => setOpen(false)}
         >
           <div
-            className="w-full max-w-md rounded-xl border border-border bg-surface p-6"
+            className="max-h-full w-full max-w-md overflow-y-auto rounded-xl border border-border bg-surface p-6"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="mb-4 flex items-center justify-between">
@@ -58,7 +58,7 @@ export function NovoVeiculoModal() {
             </div>
 
             <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
-              <VeiculoFields />
+              <VeiculoFields fornecedores={fornecedores} />
 
               {error && <p className="text-sm text-red-400">{error}</p>}
 

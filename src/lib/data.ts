@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import type {
   Cliente,
   Fornecedor,
+  OrigemVeiculo,
   PapelUsuario,
   Parcela,
   StatusParcela,
@@ -16,7 +17,9 @@ export async function getVeiculos(): Promise<Veiculo[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("veiculos")
-    .select("id, empresa_id, marca, modelo, ano, valor, status, combustivel, cambio")
+    .select(
+      "id, empresa_id, marca, modelo, ano, valor, status, combustivel, cambio, fornecedor_id, origem, custo_aquisicao, data_aquisicao, fornecedor:fornecedores(nome)",
+    )
     .order("created_at", { ascending: false });
 
   return (data ?? []).map((v) => ({
@@ -29,6 +32,12 @@ export async function getVeiculos(): Promise<Veiculo[]> {
     status: v.status as StatusVeiculo,
     combustivel: v.combustivel ?? "",
     cambio: v.cambio ?? "",
+    fornecedorId: v.fornecedor_id ?? null,
+    fornecedorNome:
+      (Array.isArray(v.fornecedor) ? (v.fornecedor[0] ?? null) : v.fornecedor)?.nome ?? null,
+    origem: v.origem as OrigemVeiculo,
+    custoAquisicao: Number(v.custo_aquisicao),
+    dataAquisicao: v.data_aquisicao ?? null,
   }));
 }
 
