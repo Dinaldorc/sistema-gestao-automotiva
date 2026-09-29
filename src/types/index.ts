@@ -42,6 +42,15 @@ export interface Fornecedor {
   telefone: string;
 }
 
+export interface CustoVeiculo {
+  id: string;
+  empresaId: string;
+  veiculoId: string;
+  descricao: string;
+  valor: number;
+  data: string;
+}
+
 export interface Vendedor {
   id: string;
   empresaId: string;
