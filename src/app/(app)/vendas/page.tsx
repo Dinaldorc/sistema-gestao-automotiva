@@ -3,18 +3,28 @@ import { StatusVendaBadge } from "@/components/ui/StatusBadge";
 import { NovaVendaModal } from "@/components/vendas/NovaVendaModal";
 import { VendaRowActions } from "@/components/vendas/VendaRowActions";
 import type { OpcoesVenda } from "@/components/vendas/VendaFormFields";
-import { getClientes, getVeiculos, getVendas, getVendedores } from "@/lib/data";
+import { getClientes, getCustosVeiculo, getVeiculos, getVendas, getVendedores } from "@/lib/data";
+import { custoTotalVeiculo } from "@/lib/custos";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getUsuarioAtual } from "@/lib/auth";
+import type { CustoVeiculo } from "@/types";
 
 export default async function VendasPage() {
-  const [usuario, vendas, veiculos, clientes, vendedores] = await Promise.all([
+  const [usuario, vendas, veiculos, clientes, vendedores, custos] = await Promise.all([
     getUsuarioAtual(),
     getVendas(),
     getVeiculos(),
     getClientes(),
     getVendedores(),
+    getCustosVeiculo(),
   ]);
+
+  const custosPorVeiculo = new Map<string, CustoVeiculo[]>();
+  for (const custo of custos) {
+    const lista = custosPorVeiculo.get(custo.veiculoId) ?? [];
+    lista.push(custo);
+    custosPorVeiculo.set(custo.veiculoId, lista);
+  }
 
   const veiculosEmVendaAtiva = new Set(
     vendas.filter((v) => v.status !== "cancelada").map((v) => v.veiculoId),
@@ -29,6 +39,10 @@ export default async function VendasPage() {
     clientes: clientes.map((c) => ({ value: c.id, label: c.nome })),
     vendedores: vendedores.map((u) => ({ value: u.id, label: u.nome })),
     vendedorPadraoId: usuario?.id,
+    custoPorVeiculo: Object.fromEntries(
+      veiculos.map((v) => [v.id, custoTotalVeiculo(v.custoAquisicao, custosPorVeiculo.get(v.id) ?? [])]),
+    ),
+    precoPorVeiculo: Object.fromEntries(veiculos.map((v) => [v.id, v.valor])),
   };
 
   return (

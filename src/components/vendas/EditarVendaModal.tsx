@@ -86,7 +86,6 @@ export function EditarVendaModal({
                   vendedorId: venda.vendedorId,
                   data: venda.data,
                   valor: venda.valor,
-                  lucro: venda.lucro,
                   status: venda.status,
                 }}
               />
