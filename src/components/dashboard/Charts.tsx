@@ -58,17 +58,21 @@ export function VeiculosStatusDonut({
         </div>
       </div>
 
-      <ul className="space-y-2 text-sm">
+      <ul className="min-w-0 flex-1 space-y-2 text-sm">
         {data.map((entry) => (
-          <li key={entry.label} className="flex items-center gap-2">
+          <li key={entry.label} className="flex items-start gap-2">
             <span
-              className="h-2.5 w-2.5 rounded-full"
+              className="mt-1 h-2.5 w-2.5 shrink-0 rounded-full"
               style={{ background: entry.color }}
             />
-            <span className="text-muted">{entry.label}</span>
-            <span className="font-medium">
-              {entry.value} ({Math.round((entry.value / total) * 100)}%)
-            </span>
+            <div className="min-w-0">
+              <p className="truncate text-muted" title={entry.label}>
+                {entry.label}
+              </p>
+              <p className="font-medium">
+                {entry.value} ({total > 0 ? Math.round((entry.value / total) * 100) : 0}%)
+              </p>
+            </div>
           </li>
         ))}
       </ul>
