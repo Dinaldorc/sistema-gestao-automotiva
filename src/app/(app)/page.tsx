@@ -1,4 +1,4 @@
-import { Car, DollarSign, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
+import { Car, DollarSign, Receipt, ShoppingCart, TrendingUp, Wallet, Warehouse } from "lucide-react";
 import { Topbar } from "@/components/layout/Topbar";
 import { StatCard } from "@/components/ui/StatCard";
 import { StatusVeiculoBadge, StatusVendaBadge } from "@/components/ui/StatusBadge";
@@ -7,17 +7,27 @@ import {
   VeiculosStatusDonut,
   VendasPorVendedorBarChart,
 } from "@/components/dashboard/Charts";
-import { getParcelas, getVeiculos, getVendas } from "@/lib/data";
+import { getCustosVeiculo, getParcelas, getVeiculos, getVendas } from "@/lib/data";
+import { custoTotalVeiculo } from "@/lib/custos";
 import { formatCurrency, formatDate } from "@/lib/format";
 import { getUsuarioAtual } from "@/lib/auth";
+import type { CustoVeiculo } from "@/types";
 
 export default async function DashboardPage() {
-  const [usuario, veiculos, vendas, parcelas] = await Promise.all([
+  const [usuario, veiculos, vendas, parcelas, custos] = await Promise.all([
     getUsuarioAtual(),
     getVeiculos(),
     getVendas(),
     getParcelas(),
+    getCustosVeiculo(),
   ]);
+
+  const custosPorVeiculo = new Map<string, CustoVeiculo[]>();
+  for (const custo of custos) {
+    const lista = custosPorVeiculo.get(custo.veiculoId) ?? [];
+    lista.push(custo);
+    custosPorVeiculo.set(custo.veiculoId, lista);
+  }
 
   const totalVeiculos = veiculos.length;
   const disponiveis = veiculos.filter((v) => v.status === "disponivel").length;
@@ -25,14 +35,26 @@ export default async function DashboardPage() {
   const reservados = veiculos.filter((v) => v.status === "reservado").length;
   const manutencao = veiculos.filter((v) => v.status === "manutencao").length;
 
-  const faturamento = vendas.reduce((sum, v) => sum + v.valor, 0);
-  const lucro = vendas.reduce((sum, v) => sum + v.lucro, 0);
+  const emEstoque = veiculos.filter((v) => v.status !== "vendido");
+  const estoqueACusto = emEstoque.reduce(
+    (sum, v) => sum + custoTotalVeiculo(v.custoAquisicao, custosPorVeiculo.get(v.id) ?? []),
+    0,
+  );
+
+  // Vendas canceladas não geram receita nem consomem estoque, então ficam
+  // fora dos indicadores financeiros (mas continuam aparecendo no histórico).
+  const vendasValidas = vendas.filter((v) => v.status !== "cancelada");
+  const receitaBruta = vendasValidas.reduce((sum, v) => sum + v.valor, 0);
+  const lucroBruto = vendasValidas.reduce((sum, v) => sum + v.lucro, 0);
+  const cmv = receitaBruta - lucroBruto;
+  const margemBruta = receitaBruta > 0 ? (lucroBruto / receitaBruta) * 100 : 0;
+
   const aReceber = parcelas
     .filter((p) => p.status !== "paga")
     .reduce((sum, p) => sum + p.valor, 0);
 
   const totaisPorVendedor = new Map<string, number>();
-  for (const venda of vendas) {
+  for (const venda of vendasValidas) {
     const nome = venda.vendedor?.nome.split(" ")[0] ?? "Sem vendedor";
     totaisPorVendedor.set(nome, (totaisPorVendedor.get(nome) ?? 0) + venda.valor);
   }
@@ -41,15 +63,18 @@ export default async function DashboardPage() {
   );
 
   const totaisPorData = new Map<string, number>();
-  for (const venda of vendas) {
+  for (const venda of vendasValidas) {
     totaisPorData.set(venda.data, (totaisPorData.get(venda.data) ?? 0) + venda.valor);
   }
   const datasOrdenadas = Array.from(totaisPorData.keys()).sort();
-  let acumulado = 0;
-  const faturamentoPorPeriodo = datasOrdenadas.map((data) => {
-    acumulado += totaisPorData.get(data)!;
-    return { data: formatDate(data), valor: acumulado };
-  });
+  const faturamentoPorPeriodo = datasOrdenadas.reduce<{ data: string; valor: number }[]>(
+    (acumulado, data) => {
+      const anterior = acumulado.at(-1)?.valor ?? 0;
+      acumulado.push({ data: formatDate(data), valor: anterior + totaisPorData.get(data)! });
+      return acumulado;
+    },
+    [],
+  );
 
   const statusData = [
     { label: "Disponíveis", value: disponiveis, color: "#22d3ee" },
@@ -68,12 +93,30 @@ export default async function DashboardPage() {
           <p className="text-sm text-muted">Aqui está o resumo geral do seu negócio.</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-5">
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-3">
           <StatCard icon={Car} label="Total de Veículos" value={String(totalVeiculos)} hint={`${disponiveis} disponíveis`} />
-          <StatCard icon={ShoppingCart} label="Vendas no Período" value={String(vendas.length)} />
-          <StatCard icon={DollarSign} label="Faturamento (R$)" value={formatCurrency(faturamento)} />
-          <StatCard icon={TrendingUp} label="Lucro Líquido (R$)" value={formatCurrency(lucro)} />
+          <StatCard icon={ShoppingCart} label="Vendas no Período" value={String(vendasValidas.length)} />
           <StatCard icon={Wallet} label="A Receber (R$)" value={formatCurrency(aReceber)} hint={`${parcelas.length} parcelas em aberto`} />
+        </div>
+
+        <div>
+          <h3 className="mb-3 text-sm font-semibold text-muted">Resumo Financeiro</h3>
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <StatCard icon={DollarSign} label="Receita Bruta (R$)" value={formatCurrency(receitaBruta)} />
+            <StatCard icon={Receipt} label="CMV (R$)" value={formatCurrency(cmv)} hint="Custo dos veículos vendidos" />
+            <StatCard
+              icon={TrendingUp}
+              label="Lucro Bruto (R$)"
+              value={formatCurrency(lucroBruto)}
+              hint={`${margemBruta.toFixed(1)}% de margem`}
+            />
+            <StatCard
+              icon={Warehouse}
+              label="Estoque a Custo (R$)"
+              value={formatCurrency(estoqueACusto)}
+              hint={`${emEstoque.length} veículos em estoque`}
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
