@@ -25,7 +25,6 @@ interface DadosVenda {
   vendedor_id: string;
   data: string;
   valor: number;
-  lucro: number;
   status: StatusVenda;
 }
 
@@ -41,8 +40,6 @@ function parseVendaForm(formData: FormData): { data: DadosVenda } | { error: str
   const vendedorId = String(formData.get("vendedor_id") ?? "").trim();
   const data = String(formData.get("data") ?? "").trim();
   const valor = Number(formData.get("valor"));
-  const lucroBruto = String(formData.get("lucro") ?? "").trim();
-  const lucro = lucroBruto === "" ? 0 : Number(lucroBruto);
   const status = String(formData.get("status") ?? "concluida");
 
   if (!veiculoId) return { error: "Selecione o veículo." };
@@ -52,7 +49,6 @@ function parseVendaForm(formData: FormData): { data: DadosVenda } | { error: str
     return { error: "Data inválida." };
   }
   if (!Number.isFinite(valor) || valor <= 0) return { error: "Valor inválido." };
-  if (!Number.isFinite(lucro)) return { error: "Lucro inválido." };
   if (!STATUS_VALIDOS.includes(status as StatusVenda)) return { error: "Status inválido." };
 
   return {
@@ -62,10 +58,29 @@ function parseVendaForm(formData: FormData): { data: DadosVenda } | { error: str
       vendedor_id: vendedorId,
       data,
       valor,
-      lucro,
       status: status as StatusVenda,
     },
   };
+}
+
+async function custoTotalDoVeiculo(contexto: Contexto, veiculoId: string): Promise<number> {
+  const [aquisicao, extras] = await Promise.all([
+    contexto.supabase
+      .from("veiculos")
+      .select("custo_aquisicao")
+      .eq("id", veiculoId)
+      .eq("empresa_id", contexto.empresaId)
+      .maybeSingle(),
+    contexto.supabase
+      .from("custos_veiculo")
+      .select("valor")
+      .eq("veiculo_id", veiculoId)
+      .eq("empresa_id", contexto.empresaId),
+  ]);
+
+  const custoAquisicao = Number(aquisicao.data?.custo_aquisicao ?? 0);
+  const somaExtras = (extras.data ?? []).reduce((soma, c) => soma + Number(c.valor), 0);
+  return custoAquisicao + somaExtras;
 }
 
 async function validarReferencias(
@@ -173,9 +188,12 @@ export async function criarVenda(
   const erroReferencia = await validarReferencias(contexto, parsed.data, null);
   if (erroReferencia) return { error: erroReferencia, success: false };
 
+  const custoVeiculo = await custoTotalDoVeiculo(contexto, parsed.data.veiculo_id);
+  const lucro = parsed.data.valor - custoVeiculo;
+
   const { data: criada, error } = await contexto.supabase
     .from("vendas")
-    .insert({ empresa_id: contexto.empresaId, ...parsed.data })
+    .insert({ empresa_id: contexto.empresaId, ...parsed.data, lucro })
     .select("id")
     .single();
 
@@ -215,9 +233,12 @@ export async function atualizarVenda(
   const erroReferencia = await validarReferencias(contexto, parsed.data, atual);
   if (erroReferencia) return { error: erroReferencia, success: false };
 
+  const custoVeiculo = await custoTotalDoVeiculo(contexto, parsed.data.veiculo_id);
+  const lucro = parsed.data.valor - custoVeiculo;
+
   const { error } = await contexto.supabase
     .from("vendas")
-    .update(parsed.data)
+    .update({ ...parsed.data, lucro })
     .eq("id", id)
     .eq("empresa_id", contexto.empresaId);
 

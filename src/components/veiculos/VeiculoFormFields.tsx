@@ -28,6 +28,8 @@ export function Field({
   step,
   min,
   defaultValue,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
@@ -36,7 +38,10 @@ export function Field({
   step?: string;
   min?: string;
   defaultValue?: string | number;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
+  const controlledProps = value !== undefined ? { value, onChange } : { defaultValue };
   return (
     <label className="block text-sm">
       <span className="mb-1.5 block text-muted">{label}</span>
@@ -46,7 +51,7 @@ export function Field({
         required={required}
         step={step}
         min={min}
-        defaultValue={defaultValue}
+        {...controlledProps}
         className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
       />
     </label>
@@ -60,6 +65,8 @@ export function SelectField({
   defaultValue,
   required,
   placeholder,
+  value,
+  onChange,
 }: {
   label: string;
   name: string;
@@ -67,14 +74,18 @@ export function SelectField({
   defaultValue?: string;
   required?: boolean;
   placeholder?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }) {
+  const controlledProps =
+    value !== undefined ? { value, onChange } : { defaultValue: defaultValue ?? (placeholder ? "" : undefined) };
   return (
     <label className="block text-sm">
       <span className="mb-1.5 block text-muted">{label}</span>
       <select
         name={name}
-        defaultValue={defaultValue ?? (placeholder ? "" : undefined)}
         required={required}
+        {...controlledProps}
         className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none focus:border-accent"
       >
         {placeholder && <option value="">{placeholder}</option>}
