@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   Cliente,
+  CustoVeiculo,
   Fornecedor,
   OrigemVeiculo,
   PapelUsuario,
@@ -71,6 +72,23 @@ export async function getFornecedores(): Promise<Fornecedor[]> {
     tipo: f.tipo as TipoFornecedor,
     documento: f.documento ?? "",
     telefone: f.telefone ?? "",
+  }));
+}
+
+export async function getCustosVeiculo(): Promise<CustoVeiculo[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("custos_veiculo")
+    .select("id, empresa_id, veiculo_id, descricao, valor, data")
+    .order("data", { ascending: true });
+
+  return (data ?? []).map((c) => ({
+    id: c.id,
+    empresaId: c.empresa_id,
+    veiculoId: c.veiculo_id,
+    descricao: c.descricao,
+    valor: Number(c.valor),
+    data: c.data,
   }));
 }
 
