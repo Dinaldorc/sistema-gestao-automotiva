@@ -56,6 +56,7 @@ export interface Vendedor {
   empresaId: string;
   nome: string;
   papel: PapelUsuario;
+  ativo: boolean;
 }
 
 export interface Venda {

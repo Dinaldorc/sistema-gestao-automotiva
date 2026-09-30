@@ -27,15 +27,34 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isLoginPage = request.nextUrl.pathname.startsWith("/login");
+  const isPaginaPublica =
+    request.nextUrl.pathname.startsWith("/login") || request.nextUrl.pathname.startsWith("/cadastro");
 
-  if (!user && !isLoginPage) {
+  if (!user && !isPaginaPublica) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);
   }
 
-  if (user && isLoginPage) {
+  if (user && !isPaginaPublica) {
+    const { data: perfil } = await supabase
+      .from("usuarios")
+      .select("ativo")
+      .eq("id", user.id)
+      .maybeSingle();
+
+    if (perfil && !perfil.ativo) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("erro", "inativo");
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach((cookie) => redirectResponse.cookies.set(cookie));
+      return redirectResponse;
+    }
+  }
+
+  if (user && isPaginaPublica) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
     return NextResponse.redirect(url);

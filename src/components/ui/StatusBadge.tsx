@@ -1,4 +1,4 @@
-import type { StatusParcela, StatusVeiculo, StatusVenda } from "@/types";
+import type { PapelUsuario, StatusParcela, StatusVeiculo, StatusVenda } from "@/types";
 
 const veiculoStyles: Record<StatusVeiculo, string> = {
   disponivel: "bg-accent-2/10 text-accent-2",
@@ -56,4 +56,26 @@ export function StatusVendaBadge({ status }: { status: StatusVenda }) {
 
 export function StatusParcelaBadge({ status }: { status: StatusParcela }) {
   return <Badge className={parcelaStyles[status]}>{parcelaLabels[status]}</Badge>;
+}
+
+const papelStyles: Record<PapelUsuario, string> = {
+  admin: "bg-purple/10 text-purple",
+  vendedor: "bg-white/10 text-muted",
+};
+
+export const papelLabels: Record<PapelUsuario, string> = {
+  admin: "Admin",
+  vendedor: "Vendedor",
+};
+
+export function PapelBadge({ papel }: { papel: PapelUsuario }) {
+  return <Badge className={papelStyles[papel]}>{papelLabels[papel]}</Badge>;
+}
+
+export function AtivoBadge({ ativo }: { ativo: boolean }) {
+  return (
+    <Badge className={ativo ? "bg-accent-2/10 text-accent-2" : "bg-red-500/10 text-red-400"}>
+      {ativo ? "Ativo" : "Inativo"}
+    </Badge>
+  );
 }
