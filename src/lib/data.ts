@@ -134,7 +134,7 @@ export async function getVendedores(): Promise<Vendedor[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("usuarios")
-    .select("id, empresa_id, nome, papel")
+    .select("id, empresa_id, nome, papel, ativo")
     .order("nome", { ascending: true });
 
   return (data ?? []).map((u) => ({
@@ -142,6 +142,7 @@ export async function getVendedores(): Promise<Vendedor[]> {
     empresaId: u.empresa_id,
     nome: u.nome,
     papel: u.papel as PapelUsuario,
+    ativo: u.ativo,
   }));
 }
 
