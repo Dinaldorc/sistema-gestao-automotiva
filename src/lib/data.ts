@@ -162,3 +162,44 @@ export async function getParcelas(): Promise<Parcela[]> {
     status: p.status as StatusParcela,
   }));
 }
+
+export interface ParcelaDetalhada {
+  id: string;
+  vendaId: string;
+  valor: number;
+  vencimento: string;
+  status: StatusParcela;
+  venda: {
+    data: string;
+    veiculo: { marca: string; modelo: string } | null;
+    cliente: { nome: string } | null;
+  } | null;
+}
+
+export async function getParcelasDetalhadas(): Promise<ParcelaDetalhada[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("parcelas")
+    .select(
+      "id, venda_id, valor, vencimento, status, venda:vendas(data, veiculo:veiculos(marca, modelo), cliente:clientes(nome))",
+    )
+    .order("vencimento", { ascending: true });
+
+  return (data ?? []).map((p) => {
+    const venda = Array.isArray(p.venda) ? (p.venda[0] ?? null) : p.venda;
+    return {
+      id: p.id,
+      vendaId: p.venda_id,
+      valor: Number(p.valor),
+      vencimento: p.vencimento,
+      status: p.status as StatusParcela,
+      venda: venda
+        ? {
+            data: venda.data,
+            veiculo: Array.isArray(venda.veiculo) ? (venda.veiculo[0] ?? null) : venda.veiculo,
+            cliente: Array.isArray(venda.cliente) ? (venda.cliente[0] ?? null) : venda.cliente,
+          }
+        : null,
+    };
+  });
+}

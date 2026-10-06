@@ -32,7 +32,7 @@ const parcelaStyles: Record<StatusParcela, string> = {
   atrasada: "bg-red-500/10 text-red-400",
 };
 
-const parcelaLabels: Record<StatusParcela, string> = {
+export const parcelaLabels: Record<StatusParcela, string> = {
   paga: "Paga",
   em_aberto: "Em Aberto",
   atrasada: "Atrasada",
