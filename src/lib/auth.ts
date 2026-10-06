@@ -15,3 +15,26 @@ export async function getUsuarioAtual() {
 
   return perfil;
 }
+
+export async function getEmpresaAtual() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: perfil } = await supabase
+    .from("usuarios")
+    .select("empresa_id")
+    .eq("id", user.id)
+    .single();
+  if (!perfil) return null;
+
+  const { data: empresa } = await supabase
+    .from("empresas")
+    .select("id, nome")
+    .eq("id", perfil.empresa_id)
+    .single();
+
+  return empresa;
+}
